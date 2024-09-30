@@ -140,7 +140,7 @@ static int pwm_vibrator_start(struct joypad *joypad)
 	pwm_set_relative_duty_cycle(&state, joypad->level, 0xffff);
 	state.enabled = true;
 
-	err = pwm_apply_state(joypad->pwm, &state);
+	err = pwm_apply_might_sleep(joypad->pwm, &state);
 	if (err) {
 		 dev_err(pdev, "failed to apply pwm state: %d", err);
 		 return err;
@@ -1078,7 +1078,7 @@ static int joypad_rumble_setup(struct device *dev, struct joypad *joypad)
 	pwm_init_state(joypad->pwm, &state);
 	state.enabled = false;
 
-	error = pwm_apply_state(joypad->pwm, &state);
+	error = pwm_apply_might_sleep(joypad->pwm, &state);
 	if (error) {
 		 dev_err(dev, "failed to apply initial PWM state: %d",
 			 error);
@@ -1331,14 +1331,12 @@ static int joypad_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int joypad_remove(struct platform_device *pdev)
+static void joypad_remove(struct platform_device *pdev)
 {
 	struct joypad *joypad = platform_get_drvdata(pdev);
 	sysfs_remove_group(&pdev->dev.kobj, &joypad_attr_group);
 	if (joypad->has_rumble)
 		sysfs_remove_group(&pdev->dev.kobj, &joypad_rumble_attr_group);
-
-	return 0;
 }
 /*----------------------------------------------------------------------------*/
 static const struct of_device_id joypad_of_match[] = {
